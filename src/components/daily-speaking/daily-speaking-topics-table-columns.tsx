@@ -87,23 +87,15 @@ export function getDailySpeakingTopicsColumns(
       },
     },
     {
-      accessorKey: "is_published",
-      header: "Published",
-      cell: ({ row }) => (
-        <Badge variant={row.getValue("is_published") ? "success" : "secondary"}>
-          {row.getValue("is_published") ? "Live" : "Draft"}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "is_deleted",
-      header: "Status",
+      id: "visibility",
+      header: "Visibility",
       cell: ({ row }) => {
-        const isDeleted = row.getValue("is_deleted") as boolean;
-        return (
-          <Badge variant={isDeleted ? "destructive" : "success"}>
-            {isDeleted ? "Deleted" : "Active"}
-          </Badge>
+        const t = row.original;
+        if (t.is_deleted) return <Badge variant="destructive">Deleted</Badge>;
+        return t.is_published ? (
+          <Badge variant="success">Live</Badge>
+        ) : (
+          <Badge variant="secondary">Draft</Badge>
         );
       },
     },
