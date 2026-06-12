@@ -148,6 +148,9 @@ export type Listening = {
   order_number: number;
   vocabulary_path: string;
   is_published: boolean;
+  sentence_count: number;
+  vocab_count: number;
+  pattern_count: number;
 };
 
 export type ListeningInsert = Omit<
