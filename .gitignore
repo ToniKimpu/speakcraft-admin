@@ -36,6 +36,19 @@ yarn-error.log*
 # vercel
 .vercel
 
+# firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+database-debug.log*
+ui-debug.log*
+.runtimeconfig.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+screenshoots/
+
+# claude code local settings
+.claude/settings.local.json

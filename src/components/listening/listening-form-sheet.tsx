@@ -38,6 +38,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { normalizeListeningPath } from "@/lib/constants";
 import { ThumbnailUpload } from "@/components/listening/thumbnail-upload";
 import type { Listening } from "@/types/database.types";
 
@@ -75,12 +76,14 @@ export function ListeningFormSheet({
       record_subtitle_path: listening?.record_subtitle_path ?? "",
       sentence_explanation_path: listening?.sentence_explanation_path ?? "",
       vocabulary_path: listening?.vocabulary_path ?? "",
+      key_takeaways_path: listening?.key_takeaways_path ?? "",
       sentence_count: listening?.sentence_count ?? 0,
       vocab_count: listening?.vocab_count ?? 0,
       pattern_count: listening?.pattern_count ?? 0,
       mm_subtitle: listening?.mm_subtitle ?? false,
       has_vocabularies: listening?.has_vocabularies ?? false,
       is_published: listening?.is_published ?? false,
+      is_free: listening?.is_free ?? false,
       thumbnail: listening?.thumbnail ?? "",
     },
   });
@@ -100,9 +103,11 @@ export function ListeningFormSheet({
         record_subtitle_path: listening?.record_subtitle_path ?? "",
         sentence_explanation_path: listening?.sentence_explanation_path ?? "",
         vocabulary_path: listening?.vocabulary_path ?? "",
+        key_takeaways_path: listening?.key_takeaways_path ?? "",
         mm_subtitle: listening?.mm_subtitle ?? false,
         has_vocabularies: listening?.has_vocabularies ?? false,
         is_published: listening?.is_published ?? false,
+        is_free: listening?.is_free ?? false,
         thumbnail: listening?.thumbnail ?? "",
       });
     }
@@ -113,6 +118,17 @@ export function ListeningFormSheet({
       ...values,
       listening_category_id: values.listening_category_id || null,
       thumbnail: values.thumbnail || null,
+      // Normalize any pasted full Bunny URL to the relative `bunny/...` form so
+      // all path fields store consistently (the mobile app prepends the base).
+      subtitle_path: normalizeListeningPath(values.subtitle_path),
+      shadowing_path: normalizeListeningPath(values.shadowing_path),
+      multiple_choice_path: normalizeListeningPath(values.multiple_choice_path),
+      record_subtitle_path: normalizeListeningPath(values.record_subtitle_path),
+      sentence_explanation_path: normalizeListeningPath(
+        values.sentence_explanation_path
+      ),
+      vocabulary_path: normalizeListeningPath(values.vocabulary_path),
+      key_takeaways_path: normalizeListeningPath(values.key_takeaways_path),
     };
 
     if (isEditing && listening) {
@@ -321,10 +337,7 @@ export function ListeningFormSheet({
                   name="multiple_choice_path"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Multiple Choice Path{" "}
-                        <span className="text-destructive">*</span>
-                      </FormLabel>
+                      <FormLabel>Multiple Choice Path (optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="mcq/video1.json" {...field} />
                       </FormControl>
@@ -372,6 +385,22 @@ export function ListeningFormSheet({
                       <FormLabel>Vocabulary Path (optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="vocab/video1.json" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="key_takeaways_path"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Key Takeaways Path (optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="key_takeaways/video1.json"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -491,6 +520,27 @@ export function ListeningFormSheet({
                         <FormLabel>Published</FormLabel>
                         <p className="text-xs text-muted-foreground">
                           Make this listening visible to users.
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="is_free"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Free Access</FormLabel>
+                        <p className="text-xs text-muted-foreground">
+                          On = all features are free for everyone. Off =
+                          Premium-only (subtitle play stays free regardless).
                         </p>
                       </div>
                       <FormControl>

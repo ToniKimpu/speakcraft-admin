@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "source": ".",
+    "site": "pmp-english-admin-prod",
+    "frameworksBackend": {
+      "region": "asia-southeast1",
+      "memory": "512MiB"
+    },
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  }
+}

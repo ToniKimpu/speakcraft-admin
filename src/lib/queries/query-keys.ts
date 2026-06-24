@@ -63,6 +63,15 @@ export const queryKeys = {
       ["dailySpeakingTopics", "list", filters] as const,
     detail: (id: string) => ["dailySpeakingTopics", id] as const,
   },
+  paymentMethods: {
+    all: ["paymentMethods"] as const,
+    list: () => ["paymentMethods", "list"] as const,
+  },
+  paymentSubmissions: {
+    all: ["paymentSubmissions"] as const,
+    list: (filters: Record<string, unknown>) =>
+      ["paymentSubmissions", "list", filters] as const,
+  },
   breadcrumb: {
     label: (table: string, id: number) =>
       ["breadcrumb", table, id] as const,

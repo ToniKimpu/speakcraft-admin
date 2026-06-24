@@ -147,7 +147,14 @@ export type Listening = {
   sentence_explanation_path: string;
   order_number: number;
   vocabulary_path: string;
+  // Per-video Key Takeaways deck — Bunny path/URL to key_takeaways.json.
+  // Optional; empty until the admin uploads the deck.
+  key_takeaways_path: string;
   is_published: boolean;
+  // Per-video free flag. Subtitle play is free on every video; the other
+  // features (shadowing, MCQ, recording, etc.) unlock when is_free = true OR
+  // the user is premium. false = Premium-gated.
+  is_free: boolean;
   sentence_count: number;
   vocab_count: number;
   pattern_count: number;
@@ -252,4 +259,59 @@ export type DailySpeakingTopicInsert = Omit<
 
 export type DailySpeakingTopicUpdate = Partial<DailySpeakingTopicInsert> & {
   is_deleted?: boolean;
+};
+
+// Premium payment — admin-managed pay destinations + user review queue.
+
+// One pay destination shown to the user (KPay now, bank later). `amount` is the
+// price the user pays via this method; `plan_code` is which plan it grants.
+export type PaymentMethod = {
+  id: number;
+  type: string; // 'kpay' | 'wave' | 'bank' | ...
+  display_name: string;
+  account_name: string;
+  account_number: string;
+  qr_object_path: string | null; // filename in the public `contents` bucket (payments/qr)
+  instructions: string | null;
+  amount: number;
+  currency: string;
+  plan_code: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PaymentMethodInsert = Omit<
+  PaymentMethod,
+  "id" | "created_at" | "updated_at"
+>;
+export type PaymentMethodUpdate = Partial<PaymentMethodInsert>;
+
+export type PaymentSubmissionStatus = "pending" | "approved" | "rejected";
+
+// A user's payment proof awaiting / having gone through admin review. Amount,
+// plan and method are snapshotted so history stays stable if the method changes.
+export type PaymentSubmission = {
+  id: number;
+  user_id: number;
+  payment_method_id: number | null;
+  method_label: string;
+  plan_code: string;
+  amount: number;
+  currency: string;
+  proof_path: string; // path in the private `payment-proofs` bucket
+  status: PaymentSubmissionStatus;
+  reject_reason: string | null;
+  subscription_id: number | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
+export type PaymentSubmissionWithUser = PaymentSubmission & {
+  users: Pick<
+    User,
+    "id" | "name" | "email" | "account_id" | "premium_until"
+  > | null;
 };

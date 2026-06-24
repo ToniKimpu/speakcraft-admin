@@ -3,6 +3,7 @@
 import {
   BookOpen,
   CalendarDays,
+  CreditCard,
   Headphones,
   LogOut,
   MessagesSquare,
@@ -30,6 +31,7 @@ const navItems = [
   { title: "Users", href: "/users", icon: Users },
   { title: "Listening", href: "/listening", icon: Headphones },
   { title: "Daily Speaking", href: "/daily-speaking", icon: MessagesSquare },
+  { title: "Payments", href: "/payments", icon: CreditCard },
 ];
 
 export function AppSidebar() {
