@@ -2,8 +2,10 @@
 //
 // One-off / re-runnable: upserts every group in the Flutter assets index into
 // `vocab_groups` (scalar index columns + the full group as `data` JSONB).
-// Idempotent via upsert on the primary key. Sets has_audio=false (audio ships
-// later via the Bunny pipeline) and is_published=true (all 33 are ready).
+// Idempotent via upsert on the primary key. is_published=true. has_audio is
+// NOT written here — it's owned by the Bunny audio pipeline, and the upsert
+// preserves it on existing rows (see note below) so re-seeding never wipes
+// audio. Currently 50 groups (29 Beginner + 21 Intermediate).
 //
 //   node scripts/seed-vocab.mjs
 //
@@ -50,7 +52,10 @@ const groups = index.groups.map((idx) => {
     style: g.style ?? 'contrast',
     word_count: idx.word_count ?? (g.words?.length ?? 0),
     data: g,
-    has_audio: false,
+    // has_audio is intentionally NOT set here. It's owned by the Bunny audio
+    // pipeline (flipped to true once clips are uploaded). Upsert omits it so
+    // re-seeding PRESERVES the flag on existing rows; new rows take the column
+    // default (false). Setting it here would wipe audio off every group.
     is_published: true,
     is_deleted: false,
   };
