@@ -52,6 +52,11 @@ const groups = index.groups.map((idx) => {
     style: g.style ?? 'contrast',
     word_count: idx.word_count ?? (g.words?.length ?? 0),
     data: g,
+    // Freemium gate: Beginner (level 1) is free; Intermediate/Upper are premium.
+    // Deterministic from level, so it's safe to (re)write on every seed — unlike
+    // has_audio. To free a specific premium group as a promo, override it in the
+    // DB/admin AFTER seeding (a re-seed would reset it to the level rule).
+    is_free: (g.level ?? idx.level ?? 1) === 1,
     // has_audio is intentionally NOT set here. It's owned by the Bunny audio
     // pipeline (flipped to true once clips are uploaded). Upsert omits it so
     // re-seeding PRESERVES the flag on existing rows; new rows take the column
