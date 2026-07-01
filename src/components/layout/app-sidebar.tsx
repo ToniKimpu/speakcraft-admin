@@ -3,10 +3,13 @@
 import {
   BookOpen,
   CalendarDays,
+  Coins,
   CreditCard,
   Headphones,
   LogOut,
   MessagesSquare,
+  Smartphone,
+  SpellCheck,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -31,6 +34,9 @@ const navItems = [
   { title: "Users", href: "/users", icon: Users },
   { title: "Listening", href: "/listening", icon: Headphones },
   { title: "Daily Speaking", href: "/daily-speaking", icon: MessagesSquare },
+  { title: "SYM Budget", href: "/sym-budget", icon: Coins },
+  { title: "Grammar", href: "/grammar", icon: SpellCheck },
+  { title: "App Versions", href: "/app-versions", icon: Smartphone },
   { title: "Payments", href: "/payments", icon: CreditCard },
 ];
 

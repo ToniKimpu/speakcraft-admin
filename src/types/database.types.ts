@@ -315,3 +315,103 @@ export type PaymentSubmissionWithUser = PaymentSubmission & {
     "id" | "name" | "email" | "account_id" | "premium_until"
   > | null;
 };
+
+// ---------------------------------------------------------------------------
+// Grammar (writing) — content tables (mirror the bundled Flutter JSON 1:1).
+// ---------------------------------------------------------------------------
+
+export type WritingLesson = {
+  id: string; // text PK, e.g. 'l1_be_am_is_are'
+  level: number;
+  section_id: string; // e.g. '1.2'
+  section: string; // display name, e.g. 'Present'
+  order_in_level: number; // unit JSON `order`
+  type: string; // e.g. 'grammar_unit'
+  title: string;
+  subtitle_mm: string;
+  teach: Record<string, unknown>; // 7-part teach page (JSONB)
+  toolkit: Record<string, unknown>; // verb/time-word/etc id arrays (JSONB)
+  exercises: unknown[]; // ordered exercise ladder (JSONB)
+  practice_recap_en: string;
+  practice_recap_mm: string;
+  image_path: string;
+  tags: string[];
+  is_published: boolean;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WritingLessonInsert = Omit<
+  WritingLesson,
+  "created_at" | "updated_at" | "is_deleted"
+>;
+export type WritingLessonUpdate = Partial<WritingLessonInsert> & {
+  is_deleted?: boolean;
+};
+
+export type WritingLexiconKind = "verb" | "time_word" | "adjective" | "noun";
+
+export type WritingLexiconEntry = {
+  id: string; // text PK, e.g. 'v_live'
+  kind: WritingLexiconKind;
+  data: Record<string, unknown>; // the full entry, shape per kind (JSONB)
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WritingLexiconInsert = Omit<
+  WritingLexiconEntry,
+  "created_at" | "updated_at" | "is_deleted"
+>;
+export type WritingLexiconUpdate = Partial<WritingLexiconInsert> & {
+  is_deleted?: boolean;
+};
+
+// ---------------------------------------------------------------------------
+// App versions — force-update / new-version gate read by the mobile app.
+// ---------------------------------------------------------------------------
+
+export type AppVersion = {
+  id: number;
+  version_name: string;
+  build_number: number;
+  app_path: string; // APK download URL
+  force_update: boolean;
+  audio_path: string | null;
+  telegram_path: string | null;
+  release_notes: string | null; // "what's new", shown on the update screen
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppVersionInsert = Omit<
+  AppVersion,
+  "id" | "created_at" | "updated_at" | "is_deleted"
+>;
+export type AppVersionUpdate = Partial<AppVersionInsert> & {
+  is_deleted?: boolean;
+};
+
+// ---------------------------------------------------------------------------
+// Speak Your Mind — daily token budgets. Single row (id = 1), read by the
+// mobile app to gate the AI feedback feature. No insert/update RLS policy, so
+// writes must go through the service-role client (see actions/sym-budget.ts).
+// ---------------------------------------------------------------------------
+
+export type SymBudgetConfig = {
+  id: number;
+  free_trial_daily: number; // free tokens/day during the trial
+  free_daily: number; // free tokens/day after the trial
+  trial_days: number; // length of the full-rate free trial
+  premium_daily: number; // premium tokens/day
+  updated_at: string;
+};
+
+export type SymBudgetConfigUpdate = Partial<
+  Omit<SymBudgetConfig, "id" | "updated_at">
+> & {
+  updated_at?: string;
+};

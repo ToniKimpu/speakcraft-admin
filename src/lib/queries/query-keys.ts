@@ -63,6 +63,28 @@ export const queryKeys = {
       ["dailySpeakingTopics", "list", filters] as const,
     detail: (id: string) => ["dailySpeakingTopics", id] as const,
   },
+  writingLessons: {
+    all: ["writingLessons"] as const,
+    list: (filters: Record<string, unknown>) =>
+      ["writingLessons", "list", filters] as const,
+    detail: (id: string) => ["writingLessons", id] as const,
+  },
+  writingLexicon: {
+    all: ["writingLexicon"] as const,
+    list: (filters: Record<string, unknown>) =>
+      ["writingLexicon", "list", filters] as const,
+    detail: (id: string) => ["writingLexicon", id] as const,
+  },
+  appVersions: {
+    all: ["appVersions"] as const,
+    list: (filters: Record<string, unknown>) =>
+      ["appVersions", "list", filters] as const,
+    detail: (id: number) => ["appVersions", id] as const,
+  },
+  symBudget: {
+    all: ["symBudget"] as const,
+    detail: () => ["symBudget", "detail"] as const,
+  },
   paymentMethods: {
     all: ["paymentMethods"] as const,
     list: () => ["paymentMethods", "list"] as const,
