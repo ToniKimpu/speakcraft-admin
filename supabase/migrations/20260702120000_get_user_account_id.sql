@@ -6,6 +6,13 @@
 -- RETURNS TABLE signature omitted the column, so the RPC never surfaced it and
 -- AppUser.accountId was always null. Recreate get_user with account_id added
 -- (appended last to keep positional deserialization of existing fields intact).
+--
+-- Postgres forbids changing a function's return type via CREATE OR REPLACE
+-- (SQLSTATE 42P13), and adding a column to the RETURNS TABLE is a return-type
+-- change, so we DROP first and then recreate. DROP also removes the owner and
+-- grants, so both are re-applied below to match the prior definition.
+DROP FUNCTION IF EXISTS "public"."get_user"("user_id_param" "uuid");
+
 CREATE OR REPLACE FUNCTION "public"."get_user"("user_id_param" "uuid")
     RETURNS TABLE("id" bigint, "name" "text", "email" "text", "profile_path" "text", "user_id" "uuid", "device_id" "text", "total_token_used" bigint, "is_premium_user" boolean, "account_id" "text")
     LANGUAGE "plpgsql"
@@ -29,3 +36,7 @@ END;
 $$;
 
 ALTER FUNCTION "public"."get_user"("user_id_param" "uuid") OWNER TO "postgres";
+
+GRANT ALL ON FUNCTION "public"."get_user"("user_id_param" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_user"("user_id_param" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_user"("user_id_param" "uuid") TO "service_role";
