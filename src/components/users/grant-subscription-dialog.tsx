@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { isPremium } from "@/components/users/users-table-columns";
 import type { User } from "@/types/database.types";
@@ -115,7 +116,15 @@ export function GrantSubscriptionDialog({
                     <SelectContent>
                       {plans?.map((plan) => (
                         <SelectItem key={plan.id} value={plan.code}>
-                          {plan.name} ({plan.duration_days} days)
+                          <span className="inline-flex items-center gap-2">
+                            <Badge
+                              variant={plan.tier === "pro" ? "success" : "warning"}
+                              className="px-1.5 py-0 text-[10px]"
+                            >
+                              {plan.tier === "pro" ? "PRO" : "STANDARD"}
+                            </Badge>
+                            {plan.name} ({plan.duration_days} days)
+                          </span>
                         </SelectItem>
                       ))}
                       {!plansLoading && (plans?.length ?? 0) === 0 && (
@@ -129,6 +138,26 @@ export function GrantSubscriptionDialog({
                 </FormItem>
               )}
             />
+            {(() => {
+              const code = form.watch("plan_code");
+              const plan = plans?.find((p) => p.code === code);
+              if (!plan) return null;
+              const pro = plan.tier === "pro";
+              return (
+                <div className="flex items-start gap-2 rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                  <span>Grants</span>
+                  <Badge variant={pro ? "success" : "warning"} className="px-1.5 py-0 text-[10px]">
+                    {pro ? "PRO" : "STANDARD"}
+                  </Badge>
+                  <span>
+                    {pro
+                      ? "— all content + video import + AI feedback"
+                      : "— all content (no import / AI feedback)"}{" "}
+                    for {plan.duration_days} days.
+                  </span>
+                </div>
+              );
+            })()}
             <FormField
               control={form.control}
               name="payment_ref"

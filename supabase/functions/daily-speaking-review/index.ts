@@ -367,7 +367,7 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: "unauthorized" }, 401);
 
     const { data: urow, error: uerr } = await admin
-      .from("users").select("id, premium_until").eq("user_id", user.id).single();
+      .from("users").select("id, premium_until, pro_until").eq("user_id", user.id).single();
     if (uerr || !urow) return json({ error: "no user row" }, 403);
 
     // ---- Kick: re-dispatch a stuck session the learner owns (client-driven
@@ -384,17 +384,20 @@ Deno.serve(async (req) => {
     }
 
     // ---- Submit: quota gate → create job row → dispatch → return id ----
-    const isPremium = !!urow.premium_until &&
-      new Date(urow.premium_until).getTime() > Date.now();
+    // Daily Speaking's premium allowance is a Pro feature (Gemini audio cost).
+    // Standard and Free share the free daily limit; only Pro gets the token
+    // grant. (Standard is content-Premium but treated as Free for metered AI.)
+    const isPro = !!urow.pro_until &&
+      new Date(urow.pro_until as string).getTime() > Date.now();
     const { data: usageRows } = await admin.rpc("daily_speaking_usage_today", {
       p_user_id: urow.id,
     });
     const usage = (usageRows?.[0] as { session_count: number; tokens_used: number }) ??
       { session_count: 0, tokens_used: 0 };
-    if (!isPremium && usage.session_count >= FREE_DAILY_SESSIONS) {
+    if (!isPro && usage.session_count >= FREE_DAILY_SESSIONS) {
       return json({ limit_reached: true, reason: "free_daily" }, 429);
     }
-    if (isPremium && usage.tokens_used >= PREMIUM_DAILY_TOKENS) {
+    if (isPro && usage.tokens_used >= PREMIUM_DAILY_TOKENS) {
       return json({ limit_reached: true, reason: "premium_tokens" }, 429);
     }
 

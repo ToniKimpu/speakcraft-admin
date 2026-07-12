@@ -5,6 +5,7 @@ import {
   getSubscriptionPlans,
   grantSubscription,
   endPremium,
+  updatePlanPrice,
 } from "@/lib/actions/subscriptions";
 import { queryKeys } from "@/lib/queries/query-keys";
 import { toast } from "sonner";
@@ -14,6 +15,20 @@ export function useSubscriptionPlans() {
     queryKey: queryKeys.subscriptionPlans.all,
     queryFn: getSubscriptionPlans,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useUpdatePlanPrice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updatePlanPrice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.subscriptionPlans.all });
+      toast.success("Price updated");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update price: ${error.message}`);
+    },
   });
 }
 

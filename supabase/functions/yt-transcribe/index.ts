@@ -340,12 +340,17 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
   const now = new Date();
 
-  // 3. Premium + minutes-budget gate. Whisper is the only metered cost; each
-  // user has a TOTAL number of audio-minutes they may import. Used minutes =
-  // SUM(duration_sec) over ALL their rows INCLUDING soft-deleted ones, so a
-  // delete can't refund minutes.
+  // 3. Tier + minutes-budget gate. Whisper is the only metered cost; import's
+  // FULL budget is a Pro feature. Standard and Free both get the same taster:
+  //   * Pro (pro_until > now)  → premium minutes budget
+  //   * everyone else          → free taster budget
+  // (Standard is content-Premium but, for the metered features, is treated as a
+  // Free user — same allowance.) Used minutes = SUM(duration_sec) over ALL their
+  // rows INCLUDING soft-deleted ones, so a delete can't refund minutes.
   const { data: urow } = await admin
-    .from("users").select("premium_until").eq("user_id", userId).maybeSingle();
+    .from("users").select("premium_until, pro_until").eq("user_id", userId).maybeSingle();
+  const isPro = !!urow?.pro_until &&
+    new Date(urow.pro_until as string).getTime() > now.getTime();
   const isPremium = !!urow?.premium_until &&
     new Date(urow.premium_until as string).getTime() > now.getTime();
 
@@ -362,17 +367,18 @@ Deno.serve(async (req) => {
     }
   } catch (_) { /* defaults */ }
 
-  const budgetSec = isPremium ? cfg.premium_total_sec : cfg.free_total_sec;
+  // Pro gets the full budget; Standard and Free share the taster.
+  const budgetSec = isPro ? cfg.premium_total_sec : cfg.free_total_sec;
 
-  // Sum only the pool matching the user's CURRENT tier, so the free trial and
-  // the premium allotment are independent (upgrading gives a full premium pool).
+  // Sum only the pool matching the user's CURRENT tier, so the free taster and
+  // the Pro allotment are independent (upgrading gives a full Pro pool).
   let usedSec = 0;
   {
     const { data: rows } = await admin
       .from("user_imports_listening")
       .select("duration_sec")
       .eq("user_id", userId)
-      .eq("imported_free", !isPremium);
+      .eq("imported_free", !isPro);
     for (const r of (rows ?? [])) usedSec += Number(r.duration_sec) || 0;
   }
 
@@ -389,6 +395,7 @@ Deno.serve(async (req) => {
       budget_sec: budgetSec,
       remaining_sec: Math.max(0, budgetSec - usedSec),
       is_premium: isPremium,
+      is_pro: isPro,
     }, 402);
   }
 
@@ -499,7 +506,7 @@ Deno.serve(async (req) => {
       source_url: sourceUrl,
       subtitle_path: subtitlePath,
       shadowing_path: shadowingPath,
-      imported_free: !isPremium,
+      imported_free: !isPro,
       gemini_input_tokens: geminiIn,
       gemini_output_tokens: geminiOut,
       whisper_audio_sec: actualAudioSec,

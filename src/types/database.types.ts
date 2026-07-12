@@ -183,18 +183,22 @@ export type User = {
   user_id: string; // auth.users uuid
   user_type: string;
   device_id: string | null;
-  premium_until: string | null; // null/past = Free, future = Premium
+  premium_until: string | null; // null/past = Free, future = Premium (content)
+  pro_until: string | null; // null/past = not Pro; future = Pro (metered AI feats)
   total_token_used: number;
   created_at: string;
 };
 
+export type PlanTier = "standard" | "pro";
+
 export type SubscriptionPlan = {
   id: number;
-  code: string; // 'monthly' | '6_month' | '12_month'
+  code: string; // e.g. 'standard_12_month' | '12_month'
   name: string;
   duration_days: number;
   price_cents: number;
   currency: string;
+  tier: PlanTier; // 'standard' = content only, 'pro' = + metered AI features
   daily_token_grant: number;
   max_recording_seconds: number;
   is_active: boolean;
@@ -282,10 +286,13 @@ export type PaymentMethod = {
   updated_at: string;
 };
 
+// A method is a destination; amount/currency/plan_code are legacy DB columns
+// with defaults (price lives on the tier now), so they're optional on write.
 export type PaymentMethodInsert = Omit<
   PaymentMethod,
-  "id" | "created_at" | "updated_at"
->;
+  "id" | "created_at" | "updated_at" | "amount" | "currency" | "plan_code"
+> &
+  Partial<Pick<PaymentMethod, "amount" | "currency" | "plan_code">>;
 export type PaymentMethodUpdate = Partial<PaymentMethodInsert>;
 
 export type PaymentSubmissionStatus = "pending" | "approved" | "rejected";

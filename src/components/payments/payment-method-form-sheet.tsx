@@ -11,7 +11,6 @@ import {
   useCreatePaymentMethod,
   useUpdatePaymentMethod,
 } from "@/lib/queries/payment-methods";
-import { useSubscriptionPlans } from "@/lib/queries/subscriptions";
 import {
   Sheet,
   SheetContent,
@@ -67,7 +66,6 @@ export function PaymentMethodFormSheet({
   const create = useCreatePaymentMethod();
   const update = useUpdatePaymentMethod();
   const isLoading = create.isPending || update.isPending;
-  const { data: plans } = useSubscriptionPlans();
 
   const form = useForm<PaymentMethodFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,9 +77,6 @@ export function PaymentMethodFormSheet({
       account_number: method?.account_number ?? "",
       qr_object_path: method?.qr_object_path ?? null,
       instructions: method?.instructions ?? "",
-      amount: method?.amount ?? 0,
-      currency: method?.currency ?? "MMK",
-      plan_code: method?.plan_code ?? "12_month",
       is_active: method?.is_active ?? true,
       sort_order: method?.sort_order ?? 0,
     },
@@ -96,9 +91,6 @@ export function PaymentMethodFormSheet({
         account_number: method?.account_number ?? "",
         qr_object_path: method?.qr_object_path ?? null,
         instructions: method?.instructions ?? "",
-        amount: method?.amount ?? 0,
-        currency: method?.currency ?? "MMK",
-        plan_code: method?.plan_code ?? "12_month",
         is_active: method?.is_active ?? true,
         sort_order: method?.sort_order ?? 0,
       });
@@ -215,63 +207,11 @@ export function PaymentMethodFormSheet({
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Amount <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="number" min={0} step="1" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="currency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Currency</FormLabel>
-                      <FormControl>
-                        <Input placeholder="MMK" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="plan_code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Grants plan <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a plan" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {plans?.map((plan) => (
-                          <SelectItem key={plan.id} value={plan.code}>
-                            {plan.name} ({plan.duration_days} days)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <p className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                This is just a destination users pay to. The price is set per
+                tier in <span className="font-medium">Tier pricing</span>, so a
+                single KPay/Wave account serves both Standard and Pro.
+              </p>
 
               <FormField
                 control={form.control}

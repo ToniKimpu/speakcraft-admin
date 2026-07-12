@@ -283,11 +283,14 @@ Deno.serve(async (req) => {
   const today = yangonDate(now);
   const resetAt = nextYangonMidnightISO(now);
 
-  // 2. Plan + trial.
+  // 2. Tier + trial. AI feedback's FULL daily budget is a Pro feature. Standard
+  // and Free share the same taster (trial → free_daily); only Pro gets
+  // premium_daily. (Standard is content-Premium but, for the metered features,
+  // is treated as a Free user.)
   const { data: urow } = await admin
-    .from("users").select("premium_until").eq("user_id", userId).maybeSingle();
-  const isPremium = !!urow?.premium_until &&
-    new Date(urow.premium_until as string).getTime() > now.getTime();
+    .from("users").select("pro_until").eq("user_id", userId).maybeSingle();
+  const isPro = !!urow?.pro_until &&
+    new Date(urow.pro_until as string).getTime() > now.getTime();
 
   // Today's usage + first-ever usage day (for the trial window).
   const { data: todayRow } = await admin
@@ -298,9 +301,10 @@ Deno.serve(async (req) => {
 
   const cfg = await loadConfig(admin);
   let limit = cfg.premium_daily;
-  if (!isPremium) {
-    // First-ever usage day defines the trial window. After the trial, free users
-    // keep a smaller daily allowance (free_daily) — never a hard cut-off.
+  if (!isPro) {
+    // Free / Standard. First-ever usage day defines the trial window. After the
+    // trial, they keep a smaller daily allowance (free_daily) — never a hard
+    // cut-off.
     const { data: firstRow } = await admin
       .from("sym_usage").select("usage_date")
       .eq("user_id", userId)
@@ -316,7 +320,7 @@ Deno.serve(async (req) => {
       error: "budget_exceeded",
       used: usedToday,
       limit,
-      is_premium: isPremium,
+      is_premium: isPro,
       reset_at: resetAt,
     });
   }
@@ -379,7 +383,7 @@ Deno.serve(async (req) => {
     limit,
     remaining,
     checks_left: Math.max(0, Math.floor(remaining / AVG_CALL_TOKENS)),
-    is_premium: isPremium,
+    is_premium: isPro,
     reset_at: resetAt,
   };
   return json(review);

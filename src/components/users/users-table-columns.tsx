@@ -22,6 +22,18 @@ export function isPremium(user: User): boolean {
   return !!user.premium_until && new Date(user.premium_until) > new Date();
 }
 
+/** Pro = has the metered AI features (import, AI feedback). */
+export function isPro(user: User): boolean {
+  return !!user.pro_until && new Date(user.pro_until) > new Date();
+}
+
+/** Display tier: Pro > Standard (premium, not pro) > Free. */
+export function userTier(user: User): "Free" | "Standard" | "Pro" {
+  if (isPro(user)) return "Pro";
+  if (isPremium(user)) return "Standard";
+  return "Free";
+}
+
 function formatDate(value: string | null): string {
   if (!value) return "—";
   return new Date(value).toLocaleDateString("en-US", {
@@ -55,24 +67,25 @@ export function getUsersColumns(actions: ColumnActions): ColumnDef<User>[] {
     },
     {
       id: "status",
-      header: "Status",
+      header: "Tier",
       cell: ({ row }) => {
-        const premium = isPremium(row.original);
-        return (
-          <Badge variant={premium ? "success" : "secondary"}>
-            {premium ? "Premium" : "Free"}
-          </Badge>
-        );
+        const tier = userTier(row.original);
+        const variant =
+          tier === "Pro" ? "success" : tier === "Standard" ? "warning" : "secondary";
+        return <Badge variant={variant}>{tier}</Badge>;
       },
     },
     {
       accessorKey: "premium_until",
-      header: "Premium until",
-      cell: ({ row }) => (
-        <span className="text-muted-foreground">
-          {formatDate(row.original.premium_until)}
-        </span>
-      ),
+      header: "Access until",
+      cell: ({ row }) => {
+        const u = row.original;
+        // Show the Pro expiry when Pro, else the content (premium) expiry.
+        const until = isPro(u) ? u.pro_until : u.premium_until;
+        return (
+          <span className="text-muted-foreground">{formatDate(until)}</span>
+        );
+      },
     },
     {
       accessorKey: "total_token_used",

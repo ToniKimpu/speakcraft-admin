@@ -10,9 +10,25 @@ export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     .from("subscription_plans")
     .select("*")
     .eq("is_active", true)
+    // Group by tier (standard, pro) then duration so the picker reads cleanly.
+    .order("tier", { ascending: true })
     .order("duration_days", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []) as SubscriptionPlan[];
+}
+
+// Edit a tier's price (price_cents holds the whole MMK amount). Service-role:
+// subscription_plans is not client-writable.
+export async function updatePlanPrice(input: {
+  code: string;
+  priceCents: number;
+}): Promise<void> {
+  const supabase = createServiceRoleClient();
+  const { error } = await supabase
+    .from("subscription_plans")
+    .update({ price_cents: input.priceCents })
+    .eq("code", input.code);
+  if (error) throw new Error(error.message);
 }
 
 // Calls the SECURITY DEFINER RPC. Must use the pure service-role client: the

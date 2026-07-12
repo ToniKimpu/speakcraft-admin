@@ -390,12 +390,15 @@ Deno.serve(async (req) => {
   if (!row) return json({ error: "import_not_found" }, 404);
   if (row.user_id !== userId) return json({ error: "forbidden" }, 403);
 
-  // 4. Premium gate — enriched steps are premium-only.
+  // 4. Pro gate — enriched steps of an import are a Pro feature (Gemini cost).
+  // Import itself is Pro-only, so Standard/free never reach here with content to
+  // enrich anyway. Error code stays "needs_premium" for client back-compat (old
+  // builds map it to an upgrade prompt); it now means "needs Pro".
   const { data: urow } = await admin
-    .from("users").select("premium_until").eq("user_id", userId).maybeSingle();
-  const isPremium = !!urow?.premium_until &&
-    new Date(urow.premium_until as string).getTime() > Date.now();
-  if (!isPremium) return json({ error: "needs_premium" }, 402);
+    .from("users").select("pro_until").eq("user_id", userId).maybeSingle();
+  const isPro = !!urow?.pro_until &&
+    new Date(urow.pro_until as string).getTime() > Date.now();
+  if (!isPro) return json({ error: "needs_premium" }, 402);
 
   // 5. Idempotency — return the cached step if it already exists.
   const pathCol: Record<string, string> = {

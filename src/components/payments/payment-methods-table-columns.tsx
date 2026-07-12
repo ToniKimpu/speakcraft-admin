@@ -54,22 +54,6 @@ export function getPaymentMethodsColumns(
       ),
     },
     {
-      id: "amount",
-      header: "Amount",
-      cell: ({ row }) => (
-        <span className="font-medium">
-          {row.original.amount.toLocaleString()} {row.original.currency}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "plan_code",
-      header: "Plan",
-      cell: ({ row }) => (
-        <Badge variant="secondary">{row.original.plan_code}</Badge>
-      ),
-    },
-    {
       accessorKey: "is_active",
       header: "Status",
       cell: ({ row }) => {
